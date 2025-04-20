@@ -20,7 +20,7 @@ CREATE TABLE withdrawals
 (
     id           SERIAL PRIMARY KEY,
     user_id      INTEGER   NOT NULL REFERENCES users (id),
-    order_number TEXT      NOT NULL REFERENCES orders (order_number),
+    order_number TEXT      NOT NULL,
     amount       NUMERIC   NOT NULL CHECK (amount >= 0),
     processed_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
