@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"didactic-giggle/cmd/internal/config"
 	"didactic-giggle/cmd/internal/database"
 	"didactic-giggle/cmd/internal/handlers"
 	"didactic-giggle/cmd/internal/router"
+	"didactic-giggle/cmd/internal/services"
 	"errors"
 	"fmt"
 	"github.com/golang-migrate/migrate/v4"
@@ -42,6 +44,15 @@ func main() {
 
 	if err := runPgMigrations(cfg); err != nil {
 		logger.Fatal("runPgMigrations failed: ", zap.Error(err))
+	}
+
+	// стартуем демона
+	orderSvc := services.NewOrderService(db, cfg.AccrualSystemAddress, logger)
+	if cfg.Mode == "prod" {
+		orderSvc.Start(context.Background())
+		logger.Info("Воркер accrual-системы запущен")
+	} else {
+		logger.Info("Воркер отключён (MODE != prod)", zap.String("mode", cfg.Mode))
 	}
 
 	// Передача базового URL в обработчики

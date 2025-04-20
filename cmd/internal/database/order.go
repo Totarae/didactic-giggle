@@ -68,3 +68,33 @@ func (db *DB) GetOrders(ctx context.Context, userID int) ([]util.OrderInfo, erro
 	}
 	return orders, nil
 }
+
+func (db *DB) GetPendingOrders(ctx context.Context) ([]string, error) {
+	rows, err := db.Pool.Query(ctx, `
+		SELECT order_number FROM orders
+		WHERE status IN ('NEW', 'PROCESSING')
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var numbers []string // собеерм в массив номеров заказов
+	for rows.Next() {
+		var number string
+		if err := rows.Scan(&number); err != nil {
+			return nil, err
+		}
+		numbers = append(numbers, number)
+	}
+	return numbers, nil
+}
+
+func (db *DB) UpdateOrder(ctx context.Context, number string, status string, accrual float64) error {
+	_, err := db.Pool.Exec(ctx, `
+		UPDATE orders
+		SET status = $2, accrual = $3
+		WHERE order_number = $1
+	`, number, status, accrual)
+	return err
+}

@@ -24,6 +24,7 @@ func NewConfig() *Config {
 	viper.SetDefault("DATABASE_DSN", "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable")
 	viper.SetDefault("PG_MIGRATIONS_PATH", "migrations")
 	viper.SetDefault("ACCRUAL_SYSTEM_ADDRESS", "")
+	viper.SetDefault("MODE", "prod") // по умолчанию стартуем демона для заказов
 
 	_ = viper.BindEnv("SERVER_ADDRESS", "RUN_ADDRESS")
 	_ = viper.BindEnv("DATABASE_DSN", "DATABASE_URI")
