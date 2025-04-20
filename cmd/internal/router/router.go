@@ -21,6 +21,9 @@ func NewRouter(handler *handlers.Handler, logger *zap.Logger, db *database.DB) *
 				protected.Use(middleware.AuthMiddleware(db))
 				protected.Post("/orders", handler.UploadOrderHandler)
 				protected.Get("/orders", handler.GetOrdersHandler)
+				protected.Get("/balance", handler.GetBalanceHandler)
+				protected.Post("/balance/withdraw", handler.WithdrawHandler)
+				protected.Get("/withdrawals", handler.GetBalanceHandler)
 			})
 
 			//r.Get("/balance", getBalanceHandler)

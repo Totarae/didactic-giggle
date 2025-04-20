@@ -1,5 +1,15 @@
 package util
 
+import "errors"
+
+var ErrInsufficientFunds = errors.New("insufficient funds")
+
+type Withdrawal struct {
+	Order       string  `json:"order"`
+	Sum         float64 `json:"sum"`
+	ProcessedAt string  `json:"processed_at"`
+}
+
 func IsValidLuhn(number string) bool {
 	var sum int
 	double := false

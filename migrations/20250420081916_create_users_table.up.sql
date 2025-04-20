@@ -13,5 +13,14 @@ CREATE TABLE orders
     user_id      INTEGER     NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     status       TEXT        NOT NULL DEFAULT 'NEW',
     accrual      NUMERIC,
-    uploaded_at  TIMESTAMP DEFAULT NOW()
+    uploaded_at  TIMESTAMP            DEFAULT NOW()
+);
+
+CREATE TABLE withdrawals
+(
+    id           SERIAL PRIMARY KEY,
+    user_id      INTEGER   NOT NULL REFERENCES users (id),
+    order_number TEXT      NOT NULL REFERENCES orders (order_number),
+    amount       NUMERIC   NOT NULL CHECK (amount >= 0),
+    processed_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

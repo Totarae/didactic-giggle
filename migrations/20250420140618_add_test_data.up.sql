@@ -41,3 +41,26 @@ INSERT INTO orders (order_number, user_id, status)
 SELECT '6011111111111117', id, 'NEW' FROM users WHERE login = 'user_blue';
 INSERT INTO orders (order_number, user_id, status)
 SELECT '3530111333300000', id, 'PROCESSED' FROM users WHERE login = 'user_blue';
+
+---
+UPDATE orders SET accrual = 100.0
+WHERE order_number = '79927398713'; -- test1
+
+UPDATE orders SET accrual = 300.5
+WHERE order_number = '6011000990139424'; -- user_red
+
+UPDATE orders SET accrual = 150.0
+WHERE order_number = '5105105105105100'; -- user_blue
+
+UPDATE orders SET accrual = 275.75
+WHERE order_number = '3530111333300000';
+
+-- test1 списал 40.5
+INSERT INTO withdrawals (user_id, order_number, amount)
+SELECT id, '79927398713', 40.5
+FROM users WHERE login = 'test1';
+
+-- user_blue списал 200
+INSERT INTO withdrawals (user_id, order_number, amount)
+SELECT id, '5105105105105100', 200.0
+FROM users WHERE login = 'user_blue';

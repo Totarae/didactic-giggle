@@ -15,6 +15,9 @@ type UserStorage interface {
 	GetOrders(ctx context.Context, userID int) ([]util.OrderInfo, error)
 	GetPendingOrders(ctx context.Context) ([]string, error)
 	UpdateOrder(ctx context.Context, number string, status string, accrual float64) error
+	GetUserBalance(ctx context.Context, userID int) (float64, float64, error)
+	Withdraw(ctx context.Context, userID int, orderNumber string, amount float64) error
+	GetWithdrawals(ctx context.Context, userID int) ([]util.Withdrawal, error)
 }
 
 type Handler struct {
