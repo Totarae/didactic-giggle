@@ -4,38 +4,36 @@ import (
 	"context"
 	"database/sql"
 	"didactic-giggle/cmd/internal/util"
-	"errors"
-	"github.com/jackc/pgconn"
 	"time"
 )
 
 func (db *DB) SaveOrder(ctx context.Context, userID int, order string) (util.OrderSaveStatus, error) {
-	_, err := db.Pool.Exec(ctx, `
+	cmdTag, err := db.Pool.Exec(ctx, `
 		INSERT INTO orders (order_number, user_id)
 		VALUES ($1, $2)
+		ON CONFLICT (order_number) DO NOTHING
 	`, order, userID)
 
-	if err == nil {
+	if err != nil {
+		return 0, err
+	}
+	if cmdTag.RowsAffected() == 1 {
 		return util.OrderSavedNew, nil
 	}
+	// Заказ уже есть — проверим владельца
+	var existingUserID int
+	err = db.Pool.QueryRow(ctx, `
+		SELECT user_id FROM orders WHERE order_number = $1
+	`, order).Scan(&existingUserID)
 
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-		var existingUserID int
-		err := db.Pool.QueryRow(ctx, `
-			SELECT user_id FROM orders WHERE order_number = $1
-		`, order).Scan(&existingUserID)
-
-		if err != nil {
-			return 0, err
-		}
-		if existingUserID == userID {
-			return util.OrderAlreadyUploadedByUser, nil
-		}
-		return util.OrderUploadedByAnotherUser, nil
+	if err != nil {
+		return 0, err
 	}
 
-	return 0, err
+	if existingUserID == userID {
+		return util.OrderAlreadyUploadedByUser, nil
+	}
+	return util.OrderUploadedByAnotherUser, nil
 }
 
 func (db *DB) GetOrders(ctx context.Context, userID int) ([]util.OrderInfo, error) {
