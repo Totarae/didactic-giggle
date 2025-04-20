@@ -1,6 +1,9 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"github.com/spf13/viper"
+	"log"
+)
 
 // Config хранит конфигурацию сервера
 type Config struct {
@@ -30,6 +33,13 @@ func NewConfig() *Config {
 		DatabaseDSN:      viper.GetString("DATABASE_DSN"),
 		PgMigrationsPath: viper.GetString("PG_MIGRATIONS_PATH"),
 	}
+
+	log.Printf("Инициализация конфигурации: ServerAddress=%s", cfg.ServerAddress)
+	log.Printf("Инициализация конфигурации: BaseURL=%s", cfg.BaseURL)
+	log.Printf("Инициализация конфигурации: FileStoragePath=%s", cfg.FileStoragePath)
+	log.Printf("Инициализация конфигурации: DatabaseDSN=%s", cfg.DatabaseDSN)
+	log.Printf("Инициализация конфигурации: PgMigrationsPath=%s", cfg.PgMigrationsPath)
+	log.Printf("Инициализация конфигурации: Mode=%s", cfg.Mode)
 
 	return cfg
 
