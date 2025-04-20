@@ -25,6 +25,9 @@ func NewConfig() *Config {
 	viper.SetDefault("PG_MIGRATIONS_PATH", "migrations")
 	viper.SetDefault("ACCRUAL_SYSTEM_ADDRESS", "")
 
+	_ = viper.BindEnv("SERVER_ADDRESS", "RUN_ADDRESS")
+	_ = viper.BindEnv("DATABASE_DSN", "DATABASE_URI")
+
 	viper.AutomaticEnv()
 
 	// Если переменные окружения заданы — они имеют высший приоритет
