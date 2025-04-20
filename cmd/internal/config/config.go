@@ -7,12 +7,13 @@ import (
 
 // Config хранит конфигурацию сервера
 type Config struct {
-	ServerAddress    string
-	BaseURL          string
-	FileStoragePath  string
-	DatabaseDSN      string
-	PgMigrationsPath string
-	Mode             string
+	ServerAddress        string
+	BaseURL              string
+	FileStoragePath      string
+	DatabaseDSN          string
+	PgMigrationsPath     string
+	AccrualSystemAddress string
+	Mode                 string
 }
 
 // NewConfig инициализирует конфигурацию на основе аргументов командной строки
@@ -22,16 +23,19 @@ func NewConfig() *Config {
 	viper.SetDefault("BASE_URL", "http://localhost:8080")
 	viper.SetDefault("DATABASE_DSN", "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable")
 	viper.SetDefault("PG_MIGRATIONS_PATH", "migrations")
+	viper.SetDefault("ACCRUAL_SYSTEM_ADDRESS", "")
 
 	viper.AutomaticEnv()
 
 	// Если переменные окружения заданы — они имеют высший приоритет
 	cfg := &Config{
-		ServerAddress:    viper.GetString("SERVER_ADDRESS"),
-		BaseURL:          viper.GetString("BASE_URL"),
-		FileStoragePath:  viper.GetString("FILE_STORAGE_PATH"),
-		DatabaseDSN:      viper.GetString("DATABASE_DSN"),
-		PgMigrationsPath: viper.GetString("PG_MIGRATIONS_PATH"),
+		ServerAddress:        viper.GetString("SERVER_ADDRESS"),
+		BaseURL:              viper.GetString("BASE_URL"),
+		FileStoragePath:      viper.GetString("FILE_STORAGE_PATH"),
+		DatabaseDSN:          viper.GetString("DATABASE_DSN"),
+		PgMigrationsPath:     viper.GetString("PG_MIGRATIONS_PATH"),
+		AccrualSystemAddress: viper.GetString("ACCRUAL_SYSTEM_ADDRESS"),
+		Mode:                 viper.GetString("MODE"),
 	}
 
 	log.Printf("Инициализация конфигурации: ServerAddress=%s", cfg.ServerAddress)

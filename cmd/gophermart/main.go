@@ -27,6 +27,12 @@ func main() {
 	// Инициализация конфигурации
 	cfg := config.NewConfig()
 
+	logger.Info("Конфигурация сервера",
+		zap.String("ServerAddress", cfg.ServerAddress),
+		zap.String("DatabaseDSN", cfg.DatabaseDSN),
+		zap.String("AccrualSystemAddress", cfg.AccrualSystemAddress),
+	)
+
 	var db *database.DB
 	db, err = database.NewDB(logger, cfg.DatabaseDSN)
 	if err != nil {
