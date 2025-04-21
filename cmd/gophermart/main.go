@@ -56,9 +56,13 @@ func main() {
 	}
 
 	// Передача базового URL в обработчики
-	handler := handlers.NewHandler("/", logger, "mode", db)
+	handler := handlers.NewHandler("/", logger, "mode")
+	withdrawHandler := handlers.NewWithdrawHandler(db, logger)
+	userHandler := handlers.NewUserHandler(db, logger)
+	orderHandler := handlers.NewOrderHandler(db, logger)
+	balanceHandler := handlers.NewBalanceHandler(db, logger)
 
-	r := router.NewRouter(handler, logger, db)
+	r := router.NewRouter(handler, logger, db, withdrawHandler, userHandler, orderHandler, balanceHandler)
 
 	logger.Info("Сервер запущен на ", zap.String("address", cfg.ServerAddress))
 	if err := http.ListenAndServe(cfg.ServerAddress, r); err != nil {

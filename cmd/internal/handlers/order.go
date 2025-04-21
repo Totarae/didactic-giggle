@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"didactic-giggle/cmd/internal/middleware"
 	"didactic-giggle/cmd/internal/util"
 	"encoding/json"
@@ -11,7 +12,28 @@ import (
 	"strings"
 )
 
-func (h *Handler) UploadOrderHandler(w http.ResponseWriter, r *http.Request) {
+type OrderService interface {
+	SaveOrder(ctx context.Context, userID int, order string) (util.OrderSaveStatus, error)
+	GetOrders(ctx context.Context, userID int) ([]util.OrderInfo, error)
+	GetPendingOrders(ctx context.Context) ([]string, error)
+	UpdateOrder(ctx context.Context, number string, status string, accrual float64) error
+}
+
+// структура хэндлера
+type OrderHandler struct {
+	store  OrderService
+	Logger *zap.Logger
+}
+
+// конструктор
+func NewOrderHandler(storage OrderService, logger *zap.Logger) *OrderHandler {
+	return &OrderHandler{
+		Logger: logger,
+		store:  storage,
+	}
+}
+
+func (h *OrderHandler) UploadOrderHandler(w http.ResponseWriter, r *http.Request) {
 	userID, ok := middleware.UserIDFromContext(r.Context())
 	if !ok || userID == 0 {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
@@ -58,7 +80,7 @@ func (h *Handler) UploadOrderHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) GetOrdersHandler(w http.ResponseWriter, r *http.Request) {
+func (h *OrderHandler) GetOrdersHandler(w http.ResponseWriter, r *http.Request) {
 	userID, ok := middleware.UserIDFromContext(r.Context())
 	if !ok || userID == 0 {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)

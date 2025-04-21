@@ -8,27 +8,24 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewRouter(handler *handlers.Handler, logger *zap.Logger, db *database.DB) *chi.Mux {
+func NewRouter(handler *handlers.Handler, logger *zap.Logger, db *database.DB, withdrawHandler *handlers.WithdrawHandler,
+	userHandler *handlers.UserHandler, orderHandler *handlers.OrderHandler, balanceHandler *handlers.BalanceHandler) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Route("/api/user",
 		func(r chi.Router) {
-			r.Post("/register", handler.RegisterHandler)
-			r.Post("/login", handler.LoginHandler)
+			r.Post("/register", userHandler.RegisterHandler)
+			r.Post("/login", userHandler.LoginHandler)
 
 			// Protected группа — только для аутентифицированных пользователей
 			r.Group(func(protected chi.Router) {
 				protected.Use(middleware.AuthMiddleware(db))
-				protected.Post("/orders", handler.UploadOrderHandler)
-				protected.Get("/orders", handler.GetOrdersHandler)
-				protected.Get("/balance", handler.GetBalanceHandler)
-				protected.Post("/balance/withdraw", handler.WithdrawHandler)
-				protected.Get("/withdrawals", handler.GetWithdrawalsHandler)
+				protected.Post("/orders", orderHandler.UploadOrderHandler)
+				protected.Get("/orders", orderHandler.GetOrdersHandler)
+				protected.Get("/balance", balanceHandler.GetBalanceHandler)
+				protected.Post("/balance/withdraw", withdrawHandler.WithdrawHandler)
+				protected.Get("/withdrawals", withdrawHandler.GetWithdrawalsHandler)
 			})
-
-			//r.Get("/balance", getBalanceHandler)
-			//r.Post("/balance/withdraw", withdrawHandler)
-			//r.Get("/withdrawals", getWithdrawalsHandler)
 		})
 
 	return r

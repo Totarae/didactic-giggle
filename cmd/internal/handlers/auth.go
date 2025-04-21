@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -15,7 +16,27 @@ type Credentials struct {
 	Password string `json:"password"`
 }
 
-func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+type UserService interface {
+	CreateUser(ctx context.Context, login, password string) error
+	AuthenticateUser(ctx context.Context, login, password string) (bool, error)
+	GetUserIDByLogin(ctx context.Context, login string) (int, error)
+}
+
+// структура хэндлера
+type UserHandler struct {
+	store  UserService
+	Logger *zap.Logger
+}
+
+// конструктор
+func NewUserHandler(storage UserService, logger *zap.Logger) *UserHandler {
+	return &UserHandler{
+		Logger: logger,
+		store:  storage,
+	}
+}
+
+func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var creds Credentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
 		h.Logger.Warn("ошибка парсинга запроса на регистрацию", zap.Error(err))
@@ -44,7 +65,7 @@ func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var creds Credentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
 		h.Logger.Warn("Ошибка парсинга логина", zap.Error(err))
