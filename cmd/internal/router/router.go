@@ -8,23 +8,31 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewRouter(handler *handlers.Handler, logger *zap.Logger, db *database.DB, withdrawHandler *handlers.WithdrawHandler,
-	userHandler *handlers.UserHandler, orderHandler *handlers.OrderHandler, balanceHandler *handlers.BalanceHandler) *chi.Mux {
+func NewRouter(handler *handlers.Handler, logger *zap.Logger, db *database.DB, appHandlers *handlers.AppHandlers) *chi.Mux {
 	r := chi.NewRouter()
+
+	r.Use(middleware.LoggingMiddleware(logger))
 
 	r.Route("/api/user",
 		func(r chi.Router) {
-			r.Post("/register", userHandler.RegisterHandler)
-			r.Post("/login", userHandler.LoginHandler)
+			r.Post("/register", appHandlers.User.RegisterHandler)
+			r.Post("/login", appHandlers.User.LoginHandler)
 
 			// Protected группа — только для аутентифицированных пользователей
 			r.Group(func(protected chi.Router) {
 				protected.Use(middleware.AuthMiddleware(db))
-				protected.Post("/orders", orderHandler.UploadOrderHandler)
-				protected.Get("/orders", orderHandler.GetOrdersHandler)
-				protected.Get("/balance", balanceHandler.GetBalanceHandler)
-				protected.Post("/balance/withdraw", withdrawHandler.WithdrawHandler)
-				protected.Get("/withdrawals", withdrawHandler.GetWithdrawalsHandler)
+				// Собрал API методы по группам (матрешка)
+				protected.Route("/orders", func(order chi.Router) {
+					order.Post("/", appHandlers.Order.UploadOrderHandler)
+					order.Get("/", appHandlers.Order.GetOrdersHandler)
+				})
+
+				protected.Route("/balance", func(balance chi.Router) {
+					balance.Get("/", appHandlers.Balance.GetBalanceHandler)
+					balance.Post("/withdraw", appHandlers.Withdraw.WithdrawHandler)
+				})
+
+				protected.Get("/withdrawals", appHandlers.Withdraw.GetWithdrawalsHandler)
 			})
 		})
 

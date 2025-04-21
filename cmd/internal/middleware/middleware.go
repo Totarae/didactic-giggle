@@ -3,7 +3,9 @@ package middleware
 import (
 	"context"
 	"didactic-giggle/cmd/internal/database"
+	"go.uber.org/zap"
 	"net/http"
+	"time"
 )
 
 type contextKey string
@@ -42,6 +44,24 @@ func AuthMiddleware(db *database.DB) func(http.Handler) http.Handler {
 			ctx := context.WithValue(r.Context(), loginKey, login)
 			ctx = context.WithValue(ctx, userIDKey, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func LoggingMiddleware(logger *zap.Logger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			start := time.Now()
+			// Прокидываем дальше
+			next.ServeHTTP(w, r)
+			duration := time.Since(start)
+
+			logger.Info("HTTP request",
+				zap.String("method", r.Method),
+				zap.String("url", r.URL.String()),
+				zap.String("remote_addr", r.RemoteAddr),
+				zap.Duration("duration", duration),
+			)
 		})
 	}
 }

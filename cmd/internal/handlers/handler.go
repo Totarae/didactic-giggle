@@ -1,13 +1,15 @@
 package handlers
 
 import (
-	"context"
 	"go.uber.org/zap"
 	"strings"
 )
 
-type UserStorage interface {
-	GetUserBalance(ctx context.Context, userID int) (float64, float64, error)
+type AppHandlers struct {
+	User     *UserHandler
+	Order    *OrderHandler
+	Balance  *BalanceHandler
+	Withdraw *WithdrawHandler
 }
 
 type Handler struct {
