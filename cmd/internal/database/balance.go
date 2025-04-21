@@ -11,21 +11,13 @@ func (db *DB) GetUserBalance(ctx context.Context, userID int) (float64, float64,
 	var withdrawn float64
 
 	// Сумма начислений
-	err := db.Pool.QueryRow(ctx, `
-		SELECT COALESCE(SUM(accrual), 0)
-		FROM orders
-		WHERE user_id = $1 AND status = 'PROCESSED'
-	`, userID).Scan(&current)
+	err := db.Pool.QueryRow(ctx, SelectAccrualSum, userID).Scan(&current)
 	if err != nil {
 		return 0, 0, err
 	}
 
 	// Сумма списаний
-	err = db.Pool.QueryRow(ctx, `
-		SELECT COALESCE(SUM(amount), 0)
-		FROM withdrawals
-		WHERE user_id = $1
-	`, userID).Scan(&withdrawn)
+	err = db.Pool.QueryRow(ctx, SelectAmount, userID).Scan(&withdrawn)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -37,20 +29,12 @@ func (db *DB) Withdraw(ctx context.Context, userID int, orderNumber string, amou
 	// Проверяем текущий баланс
 	var current, withdrawn float64
 
-	err := db.Pool.QueryRow(ctx, `
-		SELECT COALESCE(SUM(accrual), 0)
-		FROM orders
-		WHERE user_id = $1 AND status = 'PROCESSED'
-	`, userID).Scan(&current)
+	err := db.Pool.QueryRow(ctx, SelectAccrualSum, userID).Scan(&current)
 	if err != nil {
 		return err
 	}
 
-	err = db.Pool.QueryRow(ctx, `
-		SELECT COALESCE(SUM(amount), 0)
-		FROM withdrawals
-		WHERE user_id = $1
-	`, userID).Scan(&withdrawn)
+	err = db.Pool.QueryRow(ctx, SelectAmount, userID).Scan(&withdrawn)
 	if err != nil {
 		return err
 	}
@@ -60,20 +44,12 @@ func (db *DB) Withdraw(ctx context.Context, userID int, orderNumber string, amou
 		return util.ErrInsufficientFunds
 	}
 
-	_, err = db.Pool.Exec(ctx, `
-		INSERT INTO withdrawals (user_id, order_number, amount)
-		VALUES ($1, $2, $3)
-	`, userID, orderNumber, amount)
+	_, err = db.Pool.Exec(ctx, InsertWithdrawals, userID, orderNumber, amount)
 	return err
 }
 
 func (db *DB) GetWithdrawals(ctx context.Context, userID int) ([]util.Withdrawal, error) {
-	rows, err := db.Pool.Query(ctx, `
-		SELECT order_number, amount, processed_at
-		FROM withdrawals
-		WHERE user_id = $1
-		ORDER BY processed_at DESC
-	`, userID)
+	rows, err := db.Pool.Query(ctx, SelectWithdrawals, userID)
 	if err != nil {
 		return nil, err
 	}

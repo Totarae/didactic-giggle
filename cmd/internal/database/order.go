@@ -8,11 +8,7 @@ import (
 )
 
 func (db *DB) SaveOrder(ctx context.Context, userID int, order string) (util.OrderSaveStatus, error) {
-	cmdTag, err := db.Pool.Exec(ctx, `
-		INSERT INTO orders (order_number, user_id)
-		VALUES ($1, $2)
-		ON CONFLICT (order_number) DO NOTHING
-	`, order, userID)
+	cmdTag, err := db.Pool.Exec(ctx, InsertOrderQuery, order, userID)
 
 	if err != nil {
 		return 0, err
@@ -22,9 +18,7 @@ func (db *DB) SaveOrder(ctx context.Context, userID int, order string) (util.Ord
 	}
 	// Заказ уже есть — проверим владельца
 	var existingUserID int
-	err = db.Pool.QueryRow(ctx, `
-		SELECT user_id FROM orders WHERE order_number = $1
-	`, order).Scan(&existingUserID)
+	err = db.Pool.QueryRow(ctx, SelectOrderOwnerQuery, order).Scan(&existingUserID)
 
 	if err != nil {
 		return 0, err
@@ -37,12 +31,7 @@ func (db *DB) SaveOrder(ctx context.Context, userID int, order string) (util.Ord
 }
 
 func (db *DB) GetOrders(ctx context.Context, userID int) ([]util.OrderInfo, error) {
-	rows, err := db.Pool.Query(ctx, `
-		SELECT order_number, status, accrual, uploaded_at
-		FROM orders
-		WHERE user_id = $1
-		ORDER BY uploaded_at
-	`, userID)
+	rows, err := db.Pool.Query(ctx, GetOrdersQuery, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -70,10 +59,7 @@ func (db *DB) GetOrders(ctx context.Context, userID int) ([]util.OrderInfo, erro
 }
 
 func (db *DB) GetPendingOrders(ctx context.Context) ([]string, error) {
-	rows, err := db.Pool.Query(ctx, `
-		SELECT order_number FROM orders
-		WHERE status IN ('NEW', 'PROCESSING')
-	`)
+	rows, err := db.Pool.Query(ctx, GetPendingOrdersQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -91,10 +77,6 @@ func (db *DB) GetPendingOrders(ctx context.Context) ([]string, error) {
 }
 
 func (db *DB) UpdateOrder(ctx context.Context, number string, status string, accrual float64) error {
-	_, err := db.Pool.Exec(ctx, `
-		UPDATE orders
-		SET status = $2, accrual = $3
-		WHERE order_number = $1
-	`, number, status, accrual)
+	_, err := db.Pool.Exec(ctx, UpdateOrderQuery, number, status, accrual)
 	return err
 }

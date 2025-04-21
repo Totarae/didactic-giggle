@@ -11,7 +11,7 @@ var ErrUserExists = errors.New("user already exists")
 
 func (db *DB) CreateUser(ctx context.Context, login, password string) error {
 	var exists bool
-	err := db.Pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM users WHERE login = $1)`, login).Scan(&exists)
+	err := db.Pool.QueryRow(ctx, SelectUserQuery, login).Scan(&exists)
 	if err != nil {
 		db.Logger.Error("ошибка при проверке существования пользователя", zap.Error(err))
 		return err
@@ -26,8 +26,7 @@ func (db *DB) CreateUser(ctx context.Context, login, password string) error {
 		return err
 	}
 
-	_, err = db.Pool.Exec(ctx, `INSERT INTO users (login, password, password_hash) VALUES ($1, $2, $3)`,
-		login, password, string(hashed))
+	_, err = db.Pool.Exec(ctx, InsertUserQuery, login, password, string(hashed))
 	if err != nil {
 		db.Logger.Error("ошибка при вставке нового пользователя", zap.Error(err))
 	}
@@ -36,9 +35,7 @@ func (db *DB) CreateUser(ctx context.Context, login, password string) error {
 
 func (db *DB) AuthenticateUser(ctx context.Context, login, password string) (bool, error) {
 	var hashed string
-	err := db.Pool.QueryRow(ctx,
-		`SELECT password_hash FROM users WHERE login = $1`,
-		login).Scan(&hashed)
+	err := db.Pool.QueryRow(ctx, SelectUserHash, login).Scan(&hashed)
 	if err != nil {
 		db.Logger.Warn("пользователь не найден или ошибка при запросе", zap.Error(err))
 		return false, err
@@ -55,6 +52,6 @@ func (db *DB) AuthenticateUser(ctx context.Context, login, password string) (boo
 
 func (db *DB) GetUserIDByLogin(ctx context.Context, login string) (int, error) {
 	var id int
-	err := db.Pool.QueryRow(ctx, `SELECT id FROM users WHERE login = $1`, login).Scan(&id)
+	err := db.Pool.QueryRow(ctx, SelectUserById, login).Scan(&id)
 	return id, err
 }
