@@ -33,7 +33,7 @@ const (
 	SelectUserQuery  = `SELECT EXISTS (SELECT 1 FROM users WHERE login = $1)`
 	InsertUserQuery  = `INSERT INTO users (login, password, password_hash) VALUES ($1, $2, $3)`
 	SelectUserHash   = `SELECT password_hash FROM users WHERE login = $1`
-	SelectUserById   = `SELECT id FROM users WHERE login = $1`
+	SelectUserByID   = `SELECT id FROM users WHERE login = $1`
 	SelectAccrualSum = `
 		SELECT COALESCE(SUM(accrual), 0)
 		FROM orders

@@ -52,6 +52,6 @@ func (db *DB) AuthenticateUser(ctx context.Context, login, password string) (boo
 
 func (db *DB) GetUserIDByLogin(ctx context.Context, login string) (int, error) {
 	var id int
-	err := db.Pool.QueryRow(ctx, SelectUserById, login).Scan(&id)
+	err := db.Pool.QueryRow(ctx, SelectUserByID, login).Scan(&id)
 	return id, err
 }
