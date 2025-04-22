@@ -23,8 +23,8 @@ func NewRouter(handler *handlers.Handler, logger *zap.Logger, db *database.DB, a
 				protected.Use(middleware.AuthMiddleware(db))
 				// Собрал API методы по группам (матрешка)
 				protected.Route("/orders", func(order chi.Router) {
-					order.Post("/", appHandlers.Order.UploadOrderHandler)
-					order.Get("/", appHandlers.Order.GetOrdersHandler)
+					order.Post("/", appHandlers.OrderWriter.UploadOrderHandler)
+					order.Get("/", appHandlers.OrderReader.GetOrdersHandler)
 				})
 
 				protected.Route("/balance", func(balance chi.Router) {

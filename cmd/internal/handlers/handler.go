@@ -6,10 +6,11 @@ import (
 )
 
 type AppHandlers struct {
-	User     *UserHandler
-	Order    *OrderHandler
-	Balance  *BalanceHandler
-	Withdraw *WithdrawHandler
+	User        *UserHandler
+	OrderWriter *OrderWriterHandler
+	OrderReader *OrderReaderHandler
+	Balance     *BalanceHandler
+	Withdraw    *WithdrawHandler
 }
 
 type Handler struct {

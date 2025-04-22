@@ -52,15 +52,17 @@ func main() {
 	handler := handlers.NewHandler("/", logger, "mode")
 	withdrawHandler := handlers.NewWithdrawHandler(db, logger)
 	userHandler := handlers.NewUserHandler(db, logger)
-	orderHandler := handlers.NewOrderHandler(db, logger)
+	orderWriterHandler := handlers.NewOrderWriterHandler(db, logger)
+	orderReaderHandler := handlers.NewOrderReaderHandler(db, logger)
 	balanceHandler := handlers.NewBalanceHandler(db, logger)
 
 	// Соберем все обработчики в одну структуру для лаконичности
 	appHandlers := &handlers.AppHandlers{
-		User:     userHandler,
-		Order:    orderHandler,
-		Balance:  balanceHandler,
-		Withdraw: withdrawHandler,
+		User:        userHandler,
+		OrderWriter: orderWriterHandler,
+		OrderReader: orderReaderHandler,
+		Balance:     balanceHandler,
+		Withdraw:    withdrawHandler,
 	}
 
 	r := router.NewRouter(handler, logger, db, appHandlers)
