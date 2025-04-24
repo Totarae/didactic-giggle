@@ -22,15 +22,15 @@ type WithdrawService interface {
 
 // структура хэндлера
 type WithdrawHandler struct {
-	store  WithdrawService
-	Logger *zap.Logger
+	withdrawService WithdrawService
+	Logger          *zap.Logger
 }
 
 // конструктор
-func NewWithdrawHandler(storage WithdrawService, logger *zap.Logger) *WithdrawHandler {
+func NewWithdrawHandler(withdrawService WithdrawService, logger *zap.Logger) *WithdrawHandler {
 	return &WithdrawHandler{
-		Logger: logger,
-		store:  storage,
+		Logger:          logger,
+		withdrawService: withdrawService,
 	}
 }
 
@@ -53,7 +53,7 @@ func (h *WithdrawHandler) WithdrawHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := h.store.Withdraw(r.Context(), userID, req.Order, req.Sum); err != nil {
+	if err := h.withdrawService.Withdraw(r.Context(), userID, req.Order, req.Sum); err != nil {
 		if errors.Is(err, util.ErrInsufficientFunds) {
 			http.Error(w, "insufficient funds", http.StatusPaymentRequired)
 			return
@@ -73,7 +73,7 @@ func (h *WithdrawHandler) GetWithdrawalsHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	withdrawals, err := h.store.GetWithdrawals(r.Context(), userID)
+	withdrawals, err := h.withdrawService.GetWithdrawals(r.Context(), userID)
 	if err != nil {
 		h.Logger.Error("ошибка при получении списка списаний", zap.Error(err))
 		http.Error(w, "internal error", http.StatusInternalServerError)

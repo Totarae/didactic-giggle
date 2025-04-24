@@ -16,14 +16,14 @@ type OrderWriter interface {
 	UpdateOrder(ctx context.Context, number string, status string, accrual float64) error
 }
 type OrderWriterHandler struct {
-	store  OrderWriter
-	Logger *zap.Logger
+	orderWriter OrderWriter
+	Logger      *zap.Logger
 }
 
-func NewOrderWriterHandler(store OrderWriter, logger *zap.Logger) *OrderWriterHandler {
+func NewOrderWriterHandler(orderWriter OrderWriter, logger *zap.Logger) *OrderWriterHandler {
 	return &OrderWriterHandler{
-		store:  store,
-		Logger: logger,
+		orderWriter: orderWriter,
+		Logger:      logger,
 	}
 }
 
@@ -51,7 +51,7 @@ func (h *OrderWriterHandler) UploadOrderHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	status, err := h.store.SaveOrder(r.Context(), userID, order)
+	status, err := h.orderWriter.SaveOrder(r.Context(), userID, order)
 	if err != nil {
 		h.Logger.Error("failed to save order", zap.Error(err))
 		http.Error(w, "internal server error", http.StatusInternalServerError)

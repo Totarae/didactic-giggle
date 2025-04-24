@@ -24,15 +24,15 @@ type UserService interface {
 
 // структура хэндлера
 type UserHandler struct {
-	store  UserService
-	Logger *zap.Logger
+	userService UserService
+	Logger      *zap.Logger
 }
 
 // конструктор
-func NewUserHandler(storage UserService, logger *zap.Logger) *UserHandler {
+func NewUserHandler(userService UserService, logger *zap.Logger) *UserHandler {
 	return &UserHandler{
-		Logger: logger,
-		store:  storage,
+		Logger:      logger,
+		userService: userService,
 	}
 }
 
@@ -49,7 +49,7 @@ func (h *UserHandler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.store.CreateUser(r.Context(), creds.Login, creds.Password)
+	err := h.userService.CreateUser(r.Context(), creds.Login, creds.Password)
 	if err != nil {
 		if errors.Is(err, ErrUserExists) {
 			http.Error(w, "login already in use", http.StatusConflict)
@@ -73,7 +73,7 @@ func (h *UserHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok, err := h.store.AuthenticateUser(r.Context(), creds.Login, creds.Password)
+	ok, err := h.userService.AuthenticateUser(r.Context(), creds.Login, creds.Password)
 	if err != nil {
 		h.Logger.Error("auth failed", zap.Error(err))
 		http.Error(w, "internal error", http.StatusInternalServerError)

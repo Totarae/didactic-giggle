@@ -15,14 +15,14 @@ type OrderReader interface {
 }
 
 type OrderReaderHandler struct {
-	store  OrderReader
-	Logger *zap.Logger
+	orderReader OrderReader
+	Logger      *zap.Logger
 }
 
-func NewOrderReaderHandler(store OrderReader, logger *zap.Logger) *OrderReaderHandler {
+func NewOrderReaderHandler(orderReader OrderReader, logger *zap.Logger) *OrderReaderHandler {
 	return &OrderReaderHandler{
-		store:  store,
-		Logger: logger,
+		orderReader: orderReader,
+		Logger:      logger,
 	}
 }
 
@@ -33,7 +33,7 @@ func (h *OrderReaderHandler) GetOrdersHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	orders, err := h.store.GetOrders(r.Context(), userID)
+	orders, err := h.orderReader.GetOrders(r.Context(), userID)
 	if err != nil {
 		h.Logger.Error("failed to get orders", zap.Error(err))
 		http.Error(w, "internal server error", http.StatusInternalServerError)

@@ -19,15 +19,15 @@ type BalanceService interface {
 
 // структура хэндлера
 type BalanceHandler struct {
-	store  BalanceService
-	Logger *zap.Logger
+	balanceService BalanceService
+	Logger         *zap.Logger
 }
 
 // конструктор
-func NewBalanceHandler(storage BalanceService, logger *zap.Logger) *BalanceHandler {
+func NewBalanceHandler(balanceService BalanceService, logger *zap.Logger) *BalanceHandler {
 	return &BalanceHandler{
-		Logger: logger,
-		store:  storage,
+		Logger:         logger,
+		balanceService: balanceService,
 	}
 }
 
@@ -38,7 +38,7 @@ func (h *BalanceHandler) GetBalanceHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	current, withdrawn, err := h.store.GetUserBalance(r.Context(), userID)
+	current, withdrawn, err := h.balanceService.GetUserBalance(r.Context(), userID)
 	if err != nil {
 		h.Logger.Error("ошибка получения баланса", zap.Error(err))
 		http.Error(w, "internal server error", http.StatusInternalServerError)
