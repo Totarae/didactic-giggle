@@ -32,7 +32,10 @@ func TestRegisterHandler_Success(t *testing.T) {
 	handler.RegisterHandler(rec, req)
 
 	assert.Equal(t, http.StatusOK, rec.Code)
-	cookies := rec.Result().Cookies()
+	resp := rec.Result()
+	defer resp.Body.Close()
+
+	cookies := resp.Cookies()
 	assert.Len(t, cookies, 1)
 	assert.Equal(t, "auth", cookies[0].Name)
 	assert.Equal(t, login, cookies[0].Value)
