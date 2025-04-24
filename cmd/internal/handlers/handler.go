@@ -26,3 +26,7 @@ func NewHandler(baseURL string, logger *zap.Logger, mode string) *Handler {
 		Mode:    mode,
 	}
 }
+
+func (h *Handler) BaseURL() string {
+	return h.baseURL
+}
