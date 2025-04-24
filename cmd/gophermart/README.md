@@ -7,3 +7,7 @@ Frameworks:
 zap - логирование
 chi - роутер
 migrations - миграции БД
+
+```
+mockgen -source="cmd/internal/handlers/auth.go" -destination="cmd/internal/handlers/mocks/auth_mock.go" -package=mocks
+```

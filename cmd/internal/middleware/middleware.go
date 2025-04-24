@@ -10,8 +10,20 @@ import (
 
 type contextKey string
 
-const loginKey contextKey = "login"
-const userIDKey contextKey = "user_id"
+const (
+	loginKey  contextKey = "login"
+	userIDKey contextKey = "user_id"
+)
+
+// WithLogin добавляет логин в контекст
+func WithLogin(ctx context.Context, login string) context.Context {
+	return context.WithValue(ctx, loginKey, login)
+}
+
+// WithUserID добавляет ID пользователя в контекст
+func WithUserID(ctx context.Context, userID int) context.Context {
+	return context.WithValue(ctx, userIDKey, userID)
+}
 
 // LoginFromContext возвращает логин из контекста
 func LoginFromContext(ctx context.Context) (string, bool) {
@@ -19,12 +31,13 @@ func LoginFromContext(ctx context.Context) (string, bool) {
 	return login, ok
 }
 
+// UserIDFromContext возвращает ID пользователя из контекста
 func UserIDFromContext(ctx context.Context) (int, bool) {
 	id, ok := ctx.Value(userIDKey).(int)
 	return id, ok
 }
 
-// AuthMiddleware проверяет наличие куки auth и добавляет логин в контекст
+// AuthMiddleware проверяет наличие куки auth и добавляет логин и userID в контекст
 func AuthMiddleware(db *database.DB) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -41,18 +54,18 @@ func AuthMiddleware(db *database.DB) func(http.Handler) http.Handler {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), loginKey, login)
-			ctx = context.WithValue(ctx, userIDKey, userID)
+			ctx := WithLogin(r.Context(), login)
+			ctx = WithUserID(ctx, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
 
+// LoggingMiddleware логирует запросы с помощью zap.Logger
 func LoggingMiddleware(logger *zap.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
-			// Прокидываем дальше
 			next.ServeHTTP(w, r)
 			duration := time.Since(start)
 
