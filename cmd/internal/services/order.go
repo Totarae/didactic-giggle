@@ -27,12 +27,12 @@ func (s *OrderService) Start(ctx context.Context) {
 		ticker := time.NewTicker(3 * time.Second)
 		defer ticker.Stop()
 
-		for {
+		for range ticker.C {
 			select {
 			case <-ctx.Done():
 				s.logger.Info("Воркер статусов остановлен")
 				return
-			case <-ticker.C:
+			default:
 				s.syncPendingOrders(ctx)
 			}
 		}
